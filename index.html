@@ -396,37 +396,14 @@ footer .wrap{display:flex; flex-direction:column; gap:14px}
   </div>
 </section>
 
-<!-- ============ 4. HOW IT WORKS ============ -->
-<section>
-  <div class="wrap">
-    <div class="kicker">The System</div>
-    <h2>The machine proposes. You fire.</h2>
-
-    <div class="steps">
-      <div class="panel deco step">
-        <div class="num">I</div>
-        <h3>Score &amp; gate</h3>
-        <p>The pipeline scores the whole universe. Risk gates veto anything unfit before you ever see a ticker.</p>
-      </div>
-      <div class="panel deco step">
-        <div class="num">II</div>
-        <h3>The dry run</h3>
-        <p>Every proposed trade lands in a full table — size, cost, reason. Nothing executes. You read the machine's work.</p>
-      </div>
-      <div class="panel deco step">
-        <div class="num">III</div>
-        <h3>You fire</h3>
-        <p>Hold to execute, in your own brokerage, every time. No standing orders. No autopilot. No exceptions.</p>
-      </div>
-    </div>
-
-    <div class="ritual">
-      <div class="shape"><div class="fill"></div></div>
-      <div class="lbl">HOLD 2 SECONDS · FIRE</div>
-      <div class="cap">Not a button click. A declaration.</div>
-    </div>
-  </div>
-</section>
+<!-- 4. HOW IT WORKS — REMOVED 2026-08-12, his call. Was "The machine proposes. You
+     fire." (three steps + the hold-to-fire ritual).
+     ⚠️ Two places still promise what this section used to show, and they were left
+     alone deliberately rather than silently reworded: the pricing tiers say
+     "Weekly fire rhythm" / "Dry-run table -> fire -> journal entry" / "$2-5 per fire",
+     and the FAQ answers "you read the dry-run, you fire the trade." If the fire ritual
+     is gone for good, those need rewriting too -- otherwise the page sells a step it
+     no longer demonstrates. Flagged, not assumed. -->
 
 <!-- ============ 5. TRACKS + LADDER ============ -->
 <section style="background:var(--bg0); border-top:1px solid var(--line); border-bottom:1px solid var(--line)">
@@ -502,14 +479,16 @@ footer .wrap{display:flex; flex-direction:column; gap:14px}
 <section id="letter">
   <div class="wrap">
     <div class="kicker">The Friday Letter</div>
-    <h2>The waitlist isn't a line. It's the product.</h2>
-    <p class="sub">Every Friday, the week's real work lands in your inbox. Not content — the actual output of the running system.</p>
+    <h2>Every position gets challenged before it&rsquo;s held.</h2>
+    <p class="sub">Most letters send you the conclusion. This one sends the argument — including
+    the objections that are still standing. Every Friday, free.</p>
 
     <div class="letter">
       <div class="exec email" style="position:relative">
         <div class="eh">FRIDAY · <span id="next-friday">—</span></div>
-        <div class="item"><span class="tick">✦</span><div><b>The desk, end of week</b><span>EOW briefing excerpt from the house fund — what the book did and why, real numbers.</span></div></div>
-        <div class="item"><span class="tick">✦</span><div><b>YieldCanary verdicts</b><span>This week's yield traps, advertised-vs-true yield, and the no-erosion list.</span></div></div>
+        <div class="item"><span class="tick">✦</span><div><b>The objection, and its verdict</b><span>Each position is argued against before it is held. You get the challenge and whether it was answered — or whether it still stands.</span></div></div>
+        <div class="item"><span class="tick">✦</span><div><b>The screen, re-run</b><span>All 324 income funds, advertised yield against what they actually pay from earnings. The traps and the clean ones.</span></div></div>
+        <div class="item"><span class="tick">✦</span><div><b>The desk, end of week</b><span>What the book did and why, in real numbers — the mistakes reported the same week they happen, not quietly at the end of the year.</span></div></div>
         <div class="item" style="border-bottom:0"><span class="tick">✦</span><div><b>The benchmark journal</b><span>What a real $1,000 in the hands of a raw AI agent did this week — and why.</span></div></div>
         <div class="teaser" id="canary-teaser">—</div>
       </div>

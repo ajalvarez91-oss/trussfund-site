@@ -352,6 +352,32 @@ footer .wrap{display:flex; flex-direction:column; gap:14px}
       <div class="tafoot" id="income-note">—</div>
       <div class="tafoot">Paper trading record. Labeled paper because it is paper — it becomes real money October 1 and stays public either way.</div>
     </div>
+
+    <!-- Why the income sleeve is deliberately slow. Education, no performance claim:
+         the rule is quoted, the consequence is arithmetic. Mirrors the 61-day
+         constant in data/distribution_ledger.py (_QUALIFIED_DAYS, IRC 1(h)(11)). -->
+    <div class="panel deco" style="margin-top:26px">
+      <div class="kicker" style="margin-bottom:10px">Why the income sleeve moves slowly</div>
+      <p class="tacopy">There is an obvious way to run an income book: every month, sell whatever
+      lagged and buy whatever is paying most now. It looks like diligence. It quietly costs you the
+      better tax rate on every dividend you collect.</p>
+      <p class="tacopy"><b style="color:var(--gold2)">A dividend is only &ldquo;qualified&rdquo; — taxed
+      at long-term capital gains rates instead of as ordinary income — if you held the shares more
+      than 60 days inside the 121-day window around the ex-dividend date.</b> That is
+      <span style="white-space:nowrap">26 U.S.C. §1(h)(11)</span>, and it is a holding-period test,
+      not a good-intentions test.</p>
+      <p class="tacopy">So a sleeve rotated weekly or monthly never clears the bar. Not
+      &ldquo;sometimes&rdquo; — <b>never</b>, on any position, by construction. Every distribution
+      lands as ordinary income. Rotating every two months is worse than it sounds, because it lands
+      right on the boundary and fails unpredictably depending on where each ex-date happens to sit.</p>
+      <p class="tacopy">Which is why this sleeve is judged on the health of what it holds rather than
+      on last month&rsquo;s performance, and why it turns over slowly enough for the holding period to
+      complete. <b style="color:var(--gold2)">The boring version keeps the better tax rate.</b> That is
+      not a forecast about returns — it is the rate the same dollar of income gets taxed at, which is
+      one of the few things you can actually control.</p>
+      <div class="tafoot">Education, not tax advice. Holding-period mechanics have exceptions this
+      summary does not cover, and your rate depends on your situation — talk to your own advisor.</div>
+    </div>
   </div>
 </section>
 

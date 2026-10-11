@@ -667,10 +667,15 @@ if (D){
   const rocCell = r => '<span class="' + (r >= 50 ? 'zero' : r >= 20 ? 'warn' : 'ok') + '">'
       + r.toFixed(0) + '%</span>';
 
+  /* Tickers and fund names come from vendor and issuer data, and this page is public. Escape
+     them before they go into innerHTML (security audit 2026-10-02). */
+  const esc = s => String(s).replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
   function row(r, lastCellHtml){
     const gap = r.adv - r.true;
     return '<tr>'
-      + '<td class="tk">' + r.t + (r.name ? '<small>' + r.name + '</small>' : '') + '</td>'
+      + '<td class="tk">' + esc(r.t) + (r.name ? '<small>' + esc(r.name) + '</small>' : '') + '</td>'
       + '<td>' + pct(r.adv) + '</td>'
       + '<td class="' + (r.true < 0.5 ? 'zero' : '') + '">' + pct(r.true) + '</td>'
       + '<td class="gap">−' + gap.toFixed(1) + '</td>'
@@ -689,7 +694,7 @@ if (D){
       : '<span class="' + cls(r.ret1y) + '">' + fmt(r.ret1y, 1) + '</span>')).join('');
   {
     const worst = D.audit[0], flagged = D.audit.filter(r => r.status !== 'Healthy');
-    $('audit-verdict').innerHTML = '<b>' + worst.t + ' returns ' + worst.roc.toFixed(0)
+    $('audit-verdict').innerHTML = '<b>' + esc(worst.t) + ' returns ' + worst.roc.toFixed(0)
       + '% of its payout as capital</b> — the highest in our book, and the reason it is capped at one'
       + ' slot rather than sized up. ' + (flagged.length
         ? flagged.length + ' of our ' + D.audit.length + ' income holdings score worse than Healthy on this screen.'
@@ -739,7 +744,7 @@ if (D){
     $('stat-received').innerHTML = '$'+inc.received.toFixed(2)+
       ' <small>SINCE '+inc.since+'</small>';
     $('stat-next').innerHTML = inc.next_ticker
-      ? inc.next_ticker+' <small>'+inc.next_date+' · $'+inc.next_amount.toFixed(2)+'</small>'
+      ? esc(inc.next_ticker)+' <small>'+esc(inc.next_date)+' · $'+inc.next_amount.toFixed(2)+'</small>'
       : '—';
     $('income-note').innerHTML = 'The book models <b style="color:var(--gold2)">$'+
       inc.modeled_yr.toLocaleString()+' a year</b> from its current holdings — that is a projection '+

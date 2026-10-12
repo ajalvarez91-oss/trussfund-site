@@ -7,7 +7,7 @@
 <!-- No universe count here on purpose: a crawler reads static HTML, so this string cannot be
      fed from data.js like the hero counts are, and the number moves every week (332 -> 324
      between 07-27 and 08-10). A figure that only a rebuild can correct will be wrong. -->
-<meta name="description" content="We screen every income ETF we can find, every week, and publish the gap between the yield each one advertises and what it truly pays out of earnings. Free, no email. Plus the same screen run on our own book.">
+<meta name="description" content="Most income ETFs advertise a yield they do not pay you: they hand back your own capital and call it income. The Truss Fund's test account, its drawdowns, and the Friday Letter.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M2 20 L12 4 L22 20 Z M7 20 L12 12 L17 20 M12 4 L12 12' fill='none' stroke='%23C9A84C' stroke-width='1.8'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -249,21 +249,25 @@ footer .wrap{display:flex; flex-direction:column; gap:14px}
   <div class="brand" style="font-size:34px">The Truss Fund</div>
   <div class="tag">THE INCOME SCREEN</div>
   <h1>Most income ETFs advertise a yield<br><em>they do not pay you.</em></h1>
-  <p class="sub">They hand back your own capital and call it income. We screen
-  <span id="hero-universe" class="mono">—</span> of them every week and publish the gap between what a fund
-  advertises and what it actually pays out of earnings. Free, no email, every ticker.</p>
+  <!-- 2026-10-12: the vendor-sourced screen (YieldCanary, last snapshot 08-24) is OFF the
+       page. The stat row, the trap list, the self-audit and the letter's screen line are
+       hidden and their data is no longer built into data.js. They come back when the
+       screen runs on our own data (prices, distributions, issuer 19a-1 notices). -->
+  <p class="sub">They hand back your own capital and call it income. The fund-by-fund screen
+  is being rebuilt on our own data: prices, distributions, and each issuer's own
+  return-of-capital notices. It comes back to this page when that is done.</p>
 
-  <div class="screenstat">
+  <div class="screenstat" hidden>
     <div><b id="hero-severe">—</b>RATED SEVERE RISK</div>
     <div><b id="hero-worstgap">—</b>WORST ADVERTISED-VS-REAL GAP</div>
     <div><b id="hero-zero">—</b>PAY NOTHING FROM EARNINGS</div>
   </div>
 
-  <a class="jump" href="#traps">SEE THIS WEEK'S LIST ↓</a>
+  <a class="jump" href="#traps" hidden>SEE THIS WEEK'S LIST ↓</a>
 </section>
 
 <!-- ============ 2. THE TRAP LIST — the tool, ungated ============ -->
-<section id="traps">
+<section id="traps" hidden>
   <div class="wrap">
     <div class="kicker">This week's screen</div>
     <h2>The ten widest gaps.</h2>
@@ -287,7 +291,7 @@ footer .wrap{display:flex; flex-direction:column; gap:14px}
 </section>
 
 <!-- ============ 3. THE SELF-AUDIT — same screen, our book ============ -->
-<section style="background:var(--bg0); border-top:1px solid var(--line); border-bottom:1px solid var(--line)">
+<section hidden style="background:var(--bg0); border-top:1px solid var(--line); border-bottom:1px solid var(--line)">
   <div class="wrap">
     <div class="kicker">No exceptions</div>
     <h2>We ran the same screen on ourselves.</h2>
@@ -487,10 +491,10 @@ footer .wrap{display:flex; flex-direction:column; gap:14px}
       <div class="exec email" style="position:relative">
         <div class="eh">FRIDAY · <span id="next-friday">—</span></div>
         <div class="item"><span class="tick">✦</span><div><b>The objection, and its verdict</b><span>Each position is argued against before it is held. You get the challenge and whether it was answered — or whether it still stands.</span></div></div>
-        <div class="item"><span class="tick">✦</span><div><b>The screen, re-run</b><span>All 324 income funds, advertised yield against what they actually pay from earnings. The traps and the clean ones.</span></div></div>
+        <div class="item" hidden><span class="tick">✦</span><div><b>The screen, re-run</b><span>All 324 income funds, advertised yield against what they actually pay from earnings. The traps and the clean ones.</span></div></div>
         <div class="item"><span class="tick">✦</span><div><b>The desk, end of week</b><span>What the book did and why, in real numbers — the mistakes reported the same week they happen, not quietly at the end of the year.</span></div></div>
         <div class="item" style="border-bottom:0"><span class="tick">✦</span><div><b>The benchmark journal</b><span>What a real $1,000 in the hands of a raw AI agent did this week — and why.</span></div></div>
-        <div class="teaser" id="canary-teaser">—</div>
+        <div class="teaser" id="canary-teaser" hidden>—</div>
       </div>
 
       <div class="panel deco benchcard">
@@ -651,9 +655,8 @@ if (D){
   const vspy = lastCum - lastSpy;
 
   /* ---- hero: the screen, not the performance ---- */
-  {
+  if (D.screen && D.traps){
     const s = D.screen, worst = D.traps[0];
-    $('hero-universe').textContent = s.universe;
     $('hero-severe').textContent = s.severe + ' of ' + s.universe;
     $('hero-worstgap').textContent = worst.adv.toFixed(0) + '% → ' + worst.true.toFixed(0) + '%';
     $('hero-zero').textContent = s.zero_true + ' of ' + s.universe;
@@ -684,15 +687,17 @@ if (D){
       + '<td>' + lastCellHtml + '</td></tr>';
   }
 
+  if (D.screen && D.traps){
   $('trap-rows').innerHTML = D.traps
     .map(r => row(r, '<span class="dim">$' + r.aum + 'M</span>')).join('');
   $('trap-src').textContent = 'SCREEN OF ' + D.screen.universe + ' INCOME FUNDS · '
     + D.screen.date + ' · FUNDS UNDER $50M AUM EXCLUDED · TRUE YIELD = DISTRIBUTIONS NET OF RETURN OF CAPITAL';
+  }
 
+  if (D.audit){
   $('audit-rows').innerHTML = D.audit.map(r => row(r,
     r.ret1y === null ? '<span class="dim">—</span>'
       : '<span class="' + cls(r.ret1y) + '">' + fmt(r.ret1y, 1) + '</span>')).join('');
-  {
     const worst = D.audit[0], flagged = D.audit.filter(r => r.status !== 'Healthy');
     $('audit-verdict').innerHTML = '<b>' + esc(worst.t) + ' returns ' + worst.roc.toFixed(0)
       + '% of its payout as capital</b> — the highest in our book, and the reason it is capped at one'
@@ -757,7 +762,7 @@ if (D){
   /* letter section */
   const nf = new Date(); nf.setDate(nf.getDate() + ((5 - nf.getDay() + 7) % 7 || 7));
   $('next-friday').textContent = nf.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}).toUpperCase();
-  $('canary-teaser').textContent = 'THIS WEEK\'S CANARY: '+D.canary.trap_count+' YIELD TRAPS FLAGGED · WORST: '+
+  if (D.canary) $('canary-teaser').textContent = 'THIS WEEK\'S CANARY: '+D.canary.trap_count+' YIELD TRAPS FLAGGED · WORST: '+
     D.canary.traps.slice(0,2).map(t=>t[0]).join(', ');
   $('bench-row').textContent = 'WEEK '+D.bench.week+' · '+D.bench.date+' · NAV '+D.bench.nav+' · '+D.bench.pct+' · SPY '+D.bench.spy_pct;
   $('bench-journal').textContent = '“'+D.bench.journal.slice(0,220).trim()+'…” — the journal, week '+D.bench.week+'. Full entry every Friday, in the letter.';

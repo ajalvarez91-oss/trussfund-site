@@ -368,8 +368,8 @@ footer .wrap{display:flex; flex-direction:column; gap:14px}
     </div>
     <div class="srcline" style="margin-top:20px">EXAMPLES OF A SCHEDULE, NOT RECOMMENDATIONS, AND NOT
     PERSONAL TO ANYONE. EVERY PICK RANKS ON THE TWELVE MONTHS BEFORE IT, AND LAST YEAR'S BEST OFTEN
-    DOES NOT REPEAT: THE FOLLOWED PORTFOLIOS ABOVE SHOW HOW OFTEN. "PICKED WITH HINDSIGHT" IS THE SAME
-    RULE RUN OVER THE STRETCH ITSELF, KNOWING HOW IT ENDED. NOBODY COULD HAVE CHOSEN IT ON THE DAY.
+    DOES NOT REPEAT. THE THREE BUTTONS MARKED HINDSIGHT RUN THE SAME RULE OVER THE STRETCH ITSELF,
+    KNOWING HOW IT ENDED: NOBODY COULD HAVE CHOSEN THOSE FUNDS ON THE DAY, AND NOBODY EARNED THAT RESULT.
     PORTFOLIOS DATED BEFORE 2026-10-12 WERE REBUILT LATER FROM THAT DAY'S DATA; LATER ONES ARE
     RECORDED WHEN MADE. "ITS LAST PAYMENT" IS THE MOST RECENT PAYMENT ON THAT MANY SHARES: PAYMENTS
     CHANGE EVERY PERIOD, CAN FALL, AND CAN STOP, SO IT IS NOT A FORECAST AND NOT A YIELD. $10,000 IN
@@ -899,17 +899,16 @@ if (D){
         } else {
           $(id + '-head').innerHTML = th(HELD);
           $(id).innerHTML = heldRows(st.picks, label);
-          $(id + '-hind').innerHTML = st.hind ? '<div class="srcline" style="margin-top:22px">PICKED WITH HINDSIGHT, FOR COMPARISON</div>'
-            + '<div class="screenwrap"><table class="yt mt"><thead>' + th(HELD) + '</thead><tbody>' + heldRows(st.hind.picks, label)
-            + '</tbody></table></div>' : '';
-          chart(id + '-chart', [{ pts: st.series, color: GOLD }, { pts: st.hind && st.hind.series, color: AMBER, dash: true },
-            { pts: v.spy, color: BLUE }]);
-          legend(id + '-legend', [[GOLD, 'PICKED ON THE DAY ' + usd(st.end)], st.hind && [AMBER, 'WITH HINDSIGHT ' + usd(st.hind.end)],
+          $(id + '-hind').innerHTML = '';
+          chart(id + '-chart', [{ pts: st.series, color: v.hindsight ? AMBER : GOLD }, { pts: v.spy, color: BLUE }]);
+          legend(id + '-legend', [[v.hindsight ? AMBER : GOLD, (v.hindsight ? 'PICKED WITH HINDSIGHT ' : 'PICKED ON THE DAY ') + usd(st.end)],
             spyEnd && [BLUE, 'S&P 500 ' + usd(spyEnd)]]);
-          $(id + '-now').textContent = usd(10000) + ' AT THE ' + v.asof + ' CLOSE HAS PAID OUT ' + usd(st.paid) + ' AND THE SHARES ARE WORTH '
-            + usd(st.worth) + ': ' + usd(st.end) + ' IN ALL. THE S&P 500 OVER THE SAME DAYS: ' + usd(spyEnd) + '.';
-          $(id + '-sum').textContent = (v.live ? 'RECORDED WHEN IT WAS MADE.' : 'REBUILT LATER FROM THE DATA THAT EXISTED ON ' + v.asof + '.')
-            + ' FOLLOWED TO ' + v.end + '.' + (st.hind ? ' HINDSIGHT WOULD HAVE MADE ' + usd(st.hind.end) + '.' : '');
+          $(id + '-now').textContent = (v.hindsight ? 'WITH HINDSIGHT: ' : '') + usd(10000) + ' AT THE ' + v.asof + ' CLOSE HAS PAID OUT '
+            + usd(st.paid) + ' AND THE SHARES ARE WORTH ' + usd(st.worth) + ': ' + usd(st.end) + ' IN ALL. THE S&P 500 OVER THE SAME DAYS: '
+            + usd(spyEnd) + '.';
+          $(id + '-sum').textContent = v.hindsight
+            ? 'THESE FUNDS WERE CHOSEN KNOWING HOW ' + v.asof + ' TO ' + v.end + ' TURNED OUT. NOBODY COULD HAVE PICKED THEM ON THE DAY.'
+            : (v.live ? 'RECORDED WHEN IT WAS MADE.' : 'REBUILT LATER FROM THE DATA THAT EXISTED ON ' + v.asof + '.') + ' FOLLOWED TO ' + v.end + '.';
         }
       }
     };

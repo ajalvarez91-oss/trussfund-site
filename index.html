@@ -7,7 +7,7 @@
 <!-- No universe count here on purpose: a crawler reads static HTML, so this string cannot be
      fed from data.js like the hero counts are, and the number moves every week (332 -> 324
      between 07-27 and 08-10). A figure that only a rebuild can correct will be wrong. -->
-<meta name="description" content="Most income ETFs advertise a yield they do not pay you: they hand back your own capital and call it income. The Truss Fund's test account, its drawdowns, and the Friday Letter.">
+<meta name="description" content="Most income ETFs advertise a yield they do not pay you: they hand back your own capital and call it income. Look up what an income fund paid against what its share price lost.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M2 20 L12 4 L22 20 Z M7 20 L12 12 L17 20 M12 4 L12 12' fill='none' stroke='%23C9A84C' stroke-width='1.8'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -77,7 +77,18 @@ h2{font-family:var(--fd); font-weight:600; font-size:clamp(30px,4.5vw,44px); col
 .capture::after{right:0; bottom:0; border-left:0; border-top:0}
 .capture form{display:flex; gap:10px}
 .capture input{flex:1; min-width:0; background:var(--bg0); border:1px solid var(--line); border-radius:4px; padding:13px 14px; color:var(--text); font-family:var(--fm); font-size:13px}
-.capture input:focus{outline:none; border-color:var(--gold)}
+.capture input:focus, .lookup:focus{outline:none; border-color:var(--gold)}
+.chips{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px}
+.chips button, .morebtn{background:transparent; border:1px solid var(--line); border-radius:4px; padding:8px 14px; color:var(--text2); font-family:var(--fm); font-size:11px; letter-spacing:.14em; cursor:pointer}
+.chips button.on{border-color:var(--gold); color:var(--gold2)}
+.morebtn{margin-top:16px}
+table.yt th[data-k]{cursor:pointer}
+table.yt th.sorted{color:var(--gold2)}
+.models{display:grid; grid-template-columns:1fr; gap:22px}
+table.mt th:nth-child(2), table.mt td:nth-child(2){text-align:left}
+table.mt th:first-child, table.mt td:first-child{width:110px}
+.models h3{font-family:var(--fm); font-size:12px; letter-spacing:.16em; color:var(--gold2); margin:0 0 14px; font-weight:500}
+.lookup{width:100%; margin-bottom:12px; background:var(--bg0); border:1px solid var(--line); border-radius:4px; padding:13px 14px; color:var(--text); font-family:var(--fm); font-size:13px}
 .capture button{font-family:var(--fm); font-size:12px; letter-spacing:.12em; color:var(--bg0); background:linear-gradient(180deg,var(--gold2),var(--gold)); border:0; border-radius:4px; padding:13px 20px; cursor:pointer; white-space:nowrap; font-weight:700}
 .capture button:hover{background:linear-gradient(180deg,#fff3d0,var(--gold))}
 .capnote{font-family:var(--fm); font-size:10px; letter-spacing:.1em; color:var(--text2); text-align:center; margin-top:10px}
@@ -229,7 +240,11 @@ footer .wrap{display:flex; flex-direction:column; gap:14px}
   /* the hook is Fund/Advertised/True/Gap — drop the detail columns rather than
      hide the point behind a horizontal scroll on the phone */
   table.yt{min-width:0; font-size:12px}
-  table.yt th:nth-child(n+5), table.yt td:nth-child(n+5){display:none}
+  /* phone: the screen keeps Fund · Total · Your own money; a schedule keeps Pays · Fund · Total */
+  #screen-table th:nth-child(even), #screen-table td:nth-child(even),
+  #screen-table th:nth-child(3), #screen-table td:nth-child(3),
+  table.mt th:nth-child(n+3):nth-child(-n+6), table.mt td:nth-child(n+3):nth-child(-n+6){display:none}
+  table.mt th:first-child, table.mt td:first-child{width:auto}
   table.yt th+th, table.yt td+td{padding-left:10px}
   .tk small{max-width:150px; white-space:nowrap}
 }
@@ -253,39 +268,137 @@ footer .wrap{display:flex; flex-direction:column; gap:14px}
        page. The stat row, the trap list, the self-audit and the letter's screen line are
        hidden and their data is no longer built into data.js. They come back when the
        screen runs on our own data (prices, distributions, issuer 19a-1 notices). -->
-  <p class="sub">They hand back your own capital and call it income. The fund-by-fund screen
-  is being rebuilt on our own data: prices, distributions, and each issuer's own
-  return-of-capital notices. It comes back to this page when that is done.</p>
+  <p class="sub">They hand back your own capital and call it income. We take
+  <span id="hero-universe" class="mono">—</span> income funds and set twelve months of payouts against
+  what the share price lost over the same twelve months. Free, no email, look up any ticker.</p>
 
-  <div class="screenstat" hidden>
-    <div><b id="hero-severe">—</b>RATED SEVERE RISK</div>
-    <div><b id="hero-worstgap">—</b>WORST ADVERTISED-VS-REAL GAP</div>
-    <div><b id="hero-zero">—</b>PAY NOTHING FROM EARNINGS</div>
+  <div class="screenstat">
+    <div><b id="hero-eroding">—</b>LOST MORE IN PRICE THAN THEY PAID</div>
+    <div><b id="hero-held">—</b>HELD THEIR PRICE WHILE PAYING</div>
+    <div><b id="hero-beat">—</b>BEAT THE S&amp;P 500</div>
   </div>
 
-  <a class="jump" href="#traps" hidden>SEE THIS WEEK'S LIST ↓</a>
+  <a class="jump" href="#traps">COMPARE THE FUNDS ↓</a>
 </section>
 
-<!-- ============ 2. THE TRAP LIST — the tool, ungated ============ -->
-<section id="traps" hidden>
+<!-- ============ 2. THE SCREEN — the tool, ungated ============
+     Own data only: scripts/build_web_data.py own_screen() = scripts/nav_erosion.py over
+     daily_prices + etf_distribution_history, plus the issuer's latest 19a-1 notice. -->
+<section id="traps">
   <div class="wrap">
-    <div class="kicker">This week's screen</div>
-    <h2>The ten widest gaps.</h2>
-    <p class="sub" style="margin-bottom:26px"><b>Advertised</b> is the yield the fund markets.
-    <b>True</b> is what it pays out of what it actually earns. The difference is your own money,
-    returned to you and taxed as a distribution. <b>ROC</b> is the share of the payout that is
-    return of capital; <b>clock</b> is how many years the NAV survives at the current rate.</p>
+    <div class="kicker">The screen</div>
+    <h2>What it paid, against what it lost.</h2>
+    <p class="sub" style="margin-bottom:26px"><b>Price</b> is the change in the share price over
+    twelve months. <b>Paid</b> is every distribution over the same months, as a share of the starting
+    price. <b>Total</b> is the two together with payouts reinvested. <b>Your own money</b> is the
+    part of the payout that the falling price took back: at 100%, the fund paid you nothing you
+    did not already have. Click a column to sort by it. Type two or more tickers to put them side
+    by side.</p>
 
     <div class="panel deco" style="padding:24px 26px">
+      <input id="lookup" class="lookup" type="search" autocomplete="off" spellcheck="false"
+             placeholder="Compare tickers: JEPI, SPYI, QQQI   (or type a fund name)" aria-label="Look up or compare funds">
+      <div class="chips" id="chips">
+        <button type="button" data-f="" class="on">ALL</button>
+        <button type="button" data-f="W">WEEKLY PAYERS</button>
+        <button type="button" data-f="M">MONTHLY PAYERS</button>
+      </div>
       <div class="screenwrap">
-        <table class="yt">
+        <table class="yt" id="screen-table">
           <thead><tr>
-            <th>Fund</th><th>Advertised</th><th>True</th><th>Gap</th><th>ROC</th><th>Clock</th><th>AUM</th>
+            <th data-k="t">Fund</th><th>Pays</th><th data-k="nav">Price</th><th data-k="paid">Paid</th><th data-k="tot">Total</th><th data-k="tot">vs S&amp;P 500</th><th data-k="own">Your own money</th><th data-k="roc">Issuer's ROC label</th>
           </tr></thead>
-          <tbody id="trap-rows"><tr><td class="dim" colspan="7">—</td></tr></tbody>
+          <tbody id="trap-rows"><tr><td class="dim" colspan="8">—</td></tr></tbody>
         </table>
       </div>
+      <button type="button" class="morebtn" id="more" hidden>SHOW ALL</button>
       <div class="srcline" id="trap-src">—</div>
+      <div class="srcline">PRICE IS THE SPLIT-ADJUSTED CLOSE, USED AS A STAND-IN FOR NAV. THE ISSUER'S ROC LABEL IS
+      A TAX ESTIMATE FROM ITS LATEST 19A-1 NOTICE: OPTION PREMIUM IS LABELLED RETURN OF CAPITAL BY
+      CONSTRUCTION, SO IT CAN READ 100% ON A FUND THAT IS NOT LOSING VALUE, AND 0% ON ONE THAT IS. THE
+      YEAR-END 1099-DIV IS FINAL. WE HOLD SOME OF THESE FUNDS.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2b. TWO EXAMPLE SCHEDULES ============
+     Built by _models() in scripts/build_web_data.py: one fixed rule per pay slot, no hand
+     picks. Examples of a schedule, never a recommendation; the caution line is part of it. -->
+<section id="models" style="background:var(--bg0); border-top:1px solid var(--line); border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="kicker">Two example schedules, tracked</div>
+    <h2>Something landing on every pay day.</h2>
+    <p class="sub">A weekly fund pays on the same weekday each week, and a monthly fund in the same
+    week of each month. Hold one fund for each slot and a payment lands on every one of them. A new
+    pair of examples is drawn up every Monday, written down, and followed from then on.</p>
+    <p class="sub" style="margin-top:16px; margin-bottom:26px"><b>How a fund gets its slot.</b> It
+    has to qualify first: over the twelve months before the pick, its price must have held or risen
+    while it paid. Each qualifier is then ranked against every other fund on the same schedule on
+    three things, and the ranks are blended. Total return counts for half. Steadiness, the smallest
+    fall from a high, counts for 30%. Breadth counts for 20%: an index or a mixed book scores full
+    marks, a single sector half, a single stock or coin nothing. The highest blend in each pay slot
+    takes it. A slot marked * had no qualifier and shows the fund that gave back the least.</p>
+
+    <div class="chips" id="starts"></div>
+    <div class="models">
+      <div class="panel deco" style="padding:24px 26px">
+        <h3>WEEKLY PAYERS · ONE PER WEEKDAY</h3>
+        <div class="screenwrap"><table class="yt mt">
+          <thead id="model-weekly-head"></thead>
+          <tbody id="model-weekly"><tr><td class="dim" colspan="8">—</td></tr></tbody>
+        </table></div>
+        <div id="model-weekly-hind"></div>
+        <div class="legend" id="model-weekly-legend" style="margin-top:22px"></div>
+        <div class="chartbox"><svg id="model-weekly-chart" viewBox="0 0 720 260" aria-label="Value of $10,000 against the S&amp;P 500"></svg></div>
+        <div class="srcline" id="model-weekly-now" style="color:var(--gold2)">—</div>
+        <div class="srcline" id="model-weekly-sum">—</div>
+      </div>
+      <div class="panel deco" style="padding:24px 26px">
+        <h3>MONTHLY PAYERS · ONE PER WEEK OF THE MONTH</h3>
+        <div class="screenwrap"><table class="yt mt">
+          <thead id="model-monthly-head"></thead>
+          <tbody id="model-monthly"><tr><td class="dim" colspan="8">—</td></tr></tbody>
+        </table></div>
+        <div id="model-monthly-hind"></div>
+        <div class="legend" id="model-monthly-legend" style="margin-top:22px"></div>
+        <div class="chartbox"><svg id="model-monthly-chart" viewBox="0 0 720 260" aria-label="Value of $10,000 against the S&amp;P 500"></svg></div>
+        <div class="srcline" id="model-monthly-now" style="color:var(--gold2)">—</div>
+        <div class="srcline" id="model-monthly-sum">—</div>
+      </div>
+    </div>
+    <div class="srcline" style="margin-top:20px">EXAMPLES OF A SCHEDULE, NOT RECOMMENDATIONS, AND NOT
+    PERSONAL TO ANYONE. EVERY PICK RANKS ON THE TWELVE MONTHS BEFORE IT, AND LAST YEAR'S BEST OFTEN
+    DOES NOT REPEAT: THE FOLLOWED PORTFOLIOS ABOVE SHOW HOW OFTEN. "PICKED WITH HINDSIGHT" IS THE SAME
+    RULE RUN OVER THE STRETCH ITSELF, KNOWING HOW IT ENDED. NOBODY COULD HAVE CHOSEN IT ON THE DAY.
+    PORTFOLIOS DATED BEFORE 2026-10-12 WERE REBUILT LATER FROM THAT DAY'S DATA; LATER ONES ARE
+    RECORDED WHEN MADE. "ITS LAST PAYMENT" IS THE MOST RECENT PAYMENT ON THAT MANY SHARES: PAYMENTS
+    CHANGE EVERY PERIOD, CAN FALL, AND CAN STOP, SO IT IS NOT A FORECAST AND NOT A YIELD. $10,000 IN
+    EQUAL SLICES, FRACTIONAL SHARES, PAYOUTS KEPT AS CASH, NO REBALANCING. THE S&P 500 LINE IS SPY
+    WITH DIVIDENDS REINVESTED. "BUILT ON" IS READ FROM THE FUND'S NAME. WE HOLD SOME OF THESE FUNDS.</div>
+
+    <div style="margin-top:34px">
+      <div class="capture" id="cap3"></div>
+      <div class="capnote">A NEW PAIR EVERY MONDAY, BY EMAIL · THE SAME PORTFOLIO AS A DATA FILE:
+      <a href="portfolio.json" style="color:var(--gold2)">PORTFOLIO.JSON</a></div>
+    </div>
+
+    <!-- Written 2026-10-13, his call: the data file may be mentioned, as INFORMATION ONLY. Do
+         not add wording that tells a reader to trade it or to have software trade it. -->
+    <div class="panel deco" style="margin-top:26px">
+      <div class="kicker" style="margin-bottom:10px">For your own tools</div>
+      <p class="tacopy">Each Monday's pair is also published as a plain data file: the tickers,
+      the pay slot each one fills, equal weights, and the closing price it was drawn up at. If you
+      use an AI assistant that is connected to your brokerage account, you can give it this address
+      and ask it to read the file:</p>
+      <p class="tacopy mono" id="feed-url" style="color:var(--gold2); word-break:break-all">portfolio.json</p>
+      <p class="tacopy">A question that works: &ldquo;Read that file and show me how it compares
+      with what I hold.&rdquo;</p>
+      <p class="tacopy"><b style="color:var(--gold2)">The file is information only.</b> It is the
+      same example shown on this page, in a form software can read. It is not advice, it is not
+      written for you or your account, and nothing in it is an instruction to buy or sell. We do
+      not connect to your broker, we never see your account, and we do not know what your assistant
+      does with the file. Any order placed in your account is your own decision, on your own
+      settings.</p>
     </div>
   </div>
 </section>
@@ -319,47 +432,14 @@ footer .wrap{display:flex; flex-direction:column; gap:14px}
   </div>
 </section>
 
-<!-- ============ 2. THE TEST ACCOUNT ============ -->
+<!-- ============ 2. WHY THE INCOME SLEEVE MOVES SLOWLY (the test account that sat above
+     this panel was removed 2026-10-13, his call) ============ -->
 <section id="account">
   <div class="wrap">
-    <div class="kicker">The book</div>
-    <h2>So what do you hold instead?</h2>
-    <p class="sub" style="margin-bottom:26px">A quarterly ladder of dividend growers, an eight-slot
-    monthly grid, one index short, and a cash reserve. Here is the account that runs it —
-    drawdowns and all, on purpose.</p>
-
-    <div class="panel deco ta">
-      <div class="tahead">
-        <span class="t">The Test Account</span>
-        <span class="badge paper">PAPER</span>
-      </div>
-      <p class="tacopy">Running its daily cycle on live paper since June 1, 2026, on Alpaca.
-      <b style="color:var(--gold2)">The book was rebuilt on July 27</b> — 88 positions cut to 23, the
-      long/short sleeve retired for a tactical index short. The curve below therefore spans two
-      different strategies, and the drawdown in it belongs to the retired one. We are showing it
-      anyway rather than restarting the chart at a flattering zero.</p>
-
-      <div class="legend">
-        <span><i style="background:var(--gold)"></i>TRUSS</span>
-        <span><i style="background:var(--data)"></i>SPY</span>
-        <span style="margin-left:auto" class="mono" id="chart-range">—</span>
-      </div>
-      <div class="chartbox"><svg id="chart" viewBox="0 0 720 300" aria-label="Truss vs SPY cumulative return"></svg></div>
-
-      <div class="statrow" style="grid-template-columns:repeat(4,1fr)">
-        <div class="stat"><div class="k">POSITIONS · BY SLEEVE</div><div class="v" id="stat-sleeves">—</div></div>
-        <div class="stat"><div class="k">WORST DRAWDOWN</div><div class="v down" id="stat-dd">—</div></div>
-        <div class="stat"><div class="k">INCOME · RECEIVED</div><div class="v" id="stat-received">—</div></div>
-        <div class="stat"><div class="k">NEXT DISTRIBUTION</div><div class="v" id="stat-next">—</div></div>
-      </div>
-      <div class="tafoot" id="income-note">—</div>
-      <div class="tafoot">Paper trading record. Labeled paper because it is paper.</div>
-    </div>
-
     <!-- Why the income sleeve is deliberately slow. Education, no performance claim:
          the rule is quoted, the consequence is arithmetic. Mirrors the 61-day
          constant in data/distribution_ledger.py (_QUALIFIED_DAYS, IRC 1(h)(11)). -->
-    <div class="panel deco" style="margin-top:26px">
+    <div class="panel deco">
       <div class="kicker" style="margin-bottom:10px">Why the income sleeve moves slowly</div>
       <p class="tacopy">There is an obvious way to run an income book: every month, sell whatever
       lagged and buy whatever is paying most now. It looks like diligence. It quietly costs you the
@@ -381,6 +461,29 @@ footer .wrap{display:flex; flex-direction:column; gap:14px}
       <div class="tafoot">Education, not tax advice. Holding-period mechanics have exceptions this
       summary does not cover, and your rate depends on your situation — talk to your own advisor.</div>
     </div>
+  </div>
+</section>
+
+<!-- ============ 2c. THE ERA OF AGENTIC CAPITAL — drafted 2026-10-13, awaiting his edit ============ -->
+<section id="era">
+  <div class="wrap">
+    <div class="kicker">The era of agentic capital</div>
+    <h2>Reading is cheap now. Deciding is not.</h2>
+    <p class="sub">For most of the last century the edge in managing money was labor. Someone had to
+    read every filing, every distribution notice and every price, and that someone drew a salary. So
+    the reading was done properly for people with a million dollars and summarized for everyone
+    else.</p>
+    <p class="sub" style="margin-top:16px">That labor now costs close to nothing. The screen above is
+    a year of prices and every payout for every fund on it, pulled and checked by software agents.
+    Nobody was paid to read a notice. The same work, done by hand, is what a research desk used to
+    be.</p>
+    <p class="sub" style="margin-top:16px">Judgment did not get cheaper. An agent that reads faster
+    knows nothing more about next year. We have tested dozens of trading ideas this way and written
+    most of them down as refuted. Speed made the testing affordable, and the ideas were still
+    wrong.</p>
+    <p class="sub" style="margin-top:16px">So the rule here is short. Agents read, count and argue
+    with each other. A person decides. A product that trades your money while you sleep has
+    automated the one step that should stay with you.</p>
   </div>
 </section>
 
@@ -544,11 +647,11 @@ footer .wrap{display:flex; flex-direction:column; gap:14px}
       </details>
       <details>
         <summary>Which numbers are real money?</summary>
-        <div class="a">The test account is paper, labeled PAPER everywhere it appears. The $1,000 benchmark is real money, labeled REAL.</div>
+        <div class="a">The $1,000 benchmark is real money, labeled REAL.</div>
       </details>
       <details>
         <summary>What can go wrong?</summary>
-        <div class="a">You can lose money. Markets go down, strategies underperform, drawdowns happen — that's why the worst drawdown is printed in red above instead of buried in a footnote. If you need certainty, this isn't the place; nobody honest sells certainty.</div>
+        <div class="a">You can lose money. Markets go down, strategies underperform, drawdowns happen. If you need certainty, this isn't the place; nobody honest sells certainty.</div>
       </details>
       <details>
         <summary>What's the AI here?</summary>
@@ -569,9 +672,8 @@ footer .wrap{display:flex; flex-direction:column; gap:14px}
     <div class="fbrand">The Truss Fund</div>
     <p class="disc">The Truss Fund is not a registered investment adviser, broker-dealer, or fiduciary.
     Nothing on this page is investment advice, a recommendation, or an offer to buy or sell any security.
-    Performance shown for the test account is paper trading and is labeled as such; the $1,000 benchmark
-    account is real money and is labeled as such. Paper results do not reflect actual trading and real
-    results may differ materially. Past performance — paper or real — is not indicative of future results.
+    The $1,000 benchmark account is real money and is labeled as such. Past performance is not
+    indicative of future results.
     All investing involves risk, including loss of principal. The platform informs; the user decides:
     every trade is proposed with a full dry-run and executed only by the user, in the user's own brokerage
     account. The Truss Fund never holds or custodies client funds.</p>
@@ -591,7 +693,8 @@ footer .wrap{display:flex; flex-direction:column; gap:14px}
    beehiivSrc / action are kept as fallbacks (older embeds, or a plain form POST). */
 const CAPTURE = {
   beehiivForm: { cap1: "daf7dbdd-b0a2-4387-b2e6-c29dbda36ef2",
-                 cap2: "daf7dbdd-b0a2-4387-b2e6-c29dbda36ef2" },
+                 cap2: "daf7dbdd-b0a2-4387-b2e6-c29dbda36ef2",
+                 cap3: "daf7dbdd-b0a2-4387-b2e6-c29dbda36ef2" },
   beehiivSrc: "", action: "", emailName: "email"
 };
 function renderCapture(id, label){
@@ -627,34 +730,22 @@ function renderCapture(id, label){
 }
 renderCapture('cap1','SEND ME THE LIST');
 renderCapture('cap2',"SEND FRIDAY'S LETTER");
+renderCapture('cap3',"SEND MONDAY'S PORTFOLIO");
 
 /* ---- helpers ---- */
 const $ = id => document.getElementById(id);
 const D = window.TRUSS_DATA;           // if missing, slots stay as em-dashes
-const day = s => Math.round(new Date(s+'T00:00:00Z').getTime()/86400000);
 const fmt = (v,dec=2) => (v>0?'+':v<0?'−':'') + Math.abs(v).toFixed(dec) + '%';
 const cls = v => v >= 0 ? 'up' : 'down';
 
-/* one shared path builder: series = [[isoDate, value], ...] mapped over a shared domain */
-function linePath(series, x0, x1, y0, y1, W, H, pad){
-  const X = d => pad + (day(d)-x0)/(x1-x0||1) * (W-2*pad);
-  const Y = v => H-pad - (v-y0)/(y1-y0||1) * (H-2*pad);
-  return { d: series.map((p,i)=>(i?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1)).join(' '), X, Y };
-}
-
 if (D){
-  const h = D.house;
-  const truss = h.dates.map((d,i)=>[d, h.cum[i]]);
-  const spy   = h.spy_dates.map((d,i)=>[d, h.spy[i]]);
-  const lastCum = h.cum[h.cum.length-1], lastSpy = h.spy[h.spy.length-1];
-  const vspy = lastCum - lastSpy;
-
   /* ---- hero: the screen, not the performance ---- */
-  if (D.screen && D.traps){
-    const s = D.screen, worst = D.traps[0];
-    $('hero-severe').textContent = s.severe + ' of ' + s.universe;
-    $('hero-worstgap').textContent = worst.adv.toFixed(0) + '% → ' + worst.true.toFixed(0) + '%';
-    $('hero-zero').textContent = s.zero_true + ' of ' + s.universe;
+  if (D.own){
+    const F = D.own.funds, n = F.length;
+    $('hero-universe').textContent = n;
+    $('hero-eroding').textContent = F.filter(f => f.v === 'ERODING').length + ' of ' + n;
+    $('hero-held').textContent = F.filter(f => f.v === 'COVERED').length + ' of ' + n;
+    $('hero-beat').textContent = F.filter(f => f.tot > D.own.spy).length + ' of ' + n;
   }
 
   /* ---- the two screen tables: one renderer, two datasets ---- */
@@ -682,11 +773,157 @@ if (D){
       + '<td>' + lastCellHtml + '</td></tr>';
   }
 
-  if (D.screen && D.traps){
-  $('trap-rows').innerHTML = D.traps
-    .map(r => row(r, '<span class="dim">$' + r.aum + 'M</span>')).join('');
-  $('trap-src').textContent = 'SCREEN OF ' + D.screen.universe + ' INCOME FUNDS · '
-    + D.screen.date + ' · FUNDS UNDER $50M AUM EXCLUDED · TRUE YIELD = DISTRIBUTIONS NET OF RETURN OF CAPITAL';
+  /* ---- the screen: sort, weekly/monthly filter, lookup, and side-by-side compare ---- */
+  if (D.own){
+    const O = D.own, F = O.funds, signed = v => '<span class="' + cls(v) + '">' + fmt(v, 1) + '</span>';
+    const WEEK = ['', '1st', '2nd', '3rd', 'last'];
+    const pays = f => f.f === 'W' ? 'Weekly · ' + esc(f.slot) : f.f === 'M' ? 'Monthly · ' + WEEK[f.slot] + ' week'
+                    : f.f === 'Q' ? 'Quarterly' : '—';
+    const fund = f => '<td class="tk">' + esc(f.t) + (f.name ? '<small>' + esc(f.name) + '</small>' : '') + '</td>';
+    const ownRow = f => '<tr>' + fund(f)
+      + '<td><span class="dim">' + pays(f) + '</span></td>'
+      + '<td>' + signed(f.nav) + '</td>'
+      + '<td>' + f.paid.toFixed(1) + '%</td>'
+      + '<td>' + signed(f.tot) + '</td>'
+      + '<td>' + signed(f.tot - O.spy) + '</td>'
+      + '<td>' + rocCell(f.own) + '</td>'
+      + '<td>' + (f.roc === null ? '<span class="dim">—</span>'
+          : '<span class="dim">' + f.roc + '%' + (f.roc_ytd ? ' YTD' : '') + '</span>') + '</td></tr>';
+
+    /* k = column, dir = -1 high-to-low. Default: best total return first. */
+    const st = { q: '', f: '', k: 'tot', dir: -1, all: false };
+    const draw = () => {
+      const toks = st.q.toUpperCase().split(/[\s,]+/).filter(Boolean);
+      const compare = toks.length > 1;                       // two or more tickers = side by side
+      const q = st.q.trim().toLowerCase();
+      let rows = compare ? F.filter(f => toks.includes(f.t))
+        : F.filter(f => (!st.f || f.f === st.f)
+            && (!q || f.t.toLowerCase().startsWith(q) || (f.name || '').toLowerCase().includes(q)));
+      rows = rows.slice().sort((a, b) => st.k === 't' ? st.dir * a.t.localeCompare(b.t)
+        : st.dir * ((a[st.k] ?? -1e9) - (b[st.k] ?? -1e9)));
+      const cap = st.all || q ? rows.length : 15;
+      $('trap-rows').innerHTML = rows.length ? rows.slice(0, cap).map(ownRow).join('')
+        : '<tr><td class="dim" colspan="8">Not in the screen. It covers ' + F.length
+          + ' income funds with a full year of prices and payouts on record.</td></tr>';
+      const missing = compare ? toks.filter(t => !F.some(f => f.t === t)) : [];
+      $('more').hidden = rows.length <= cap;
+      $('more').textContent = 'SHOW ALL ' + rows.length;
+      $('trap-src').textContent = (compare ? 'COMPARING ' + rows.length + (missing.length ? ' · NOT IN THE SCREEN: ' + missing.join(', ') : '')
+          : rows.length + ' OF ' + F.length + ' INCOME FUNDS')
+        + ' · ' + O.start + ' TO ' + O.end + ' · S&P 500 (SPY) TOTAL RETURN OVER THE SAME DAYS: ' + fmt(O.spy, 1);
+      document.querySelectorAll('#screen-table th[data-k]').forEach(th =>
+        th.classList.toggle('sorted', th.dataset.k === st.k));
+    };
+    $('lookup').addEventListener('input', e => { st.q = e.target.value; draw(); });
+    $('more').addEventListener('click', () => { st.all = true; draw(); });
+    $('chips').addEventListener('click', e => {
+      if (!e.target.dataset || e.target.dataset.f === undefined) return;
+      st.f = e.target.dataset.f; st.all = false;
+      [...$('chips').children].forEach(b => b.classList.toggle('on', b === e.target));
+      draw();
+    });
+    document.querySelectorAll('#screen-table th[data-k]').forEach(th => th.addEventListener('click', () => {
+      const k = th.dataset.k;
+      /* a second click flips it; names and "your own money" start low-to-high */
+      st.dir = st.k === k ? -st.dir : (k === 't' || k === 'own' ? 1 : -1);
+      st.k = k; draw();
+    }));
+    draw();
+
+    /* ---- the example schedules, tracked. views[0] = this Monday's (what $10,000 buys now);
+       the rest are earlier portfolios followed forward, the quarter starts with the hindsight
+       set beside them. Built by scripts/model_portfolios.py. ---- */
+    const byT = Object.fromEntries(F.map(f => [f.t, f]));
+    const usd = (v, dec = 0) => '$' + v.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+    const kind = f => f.b >= 1 ? 'broad' : f.b > 0 ? 'one sector' : 'one name';
+    const th = cols => '<tr>' + cols.map(c => '<th>' + c + '</th>').join('') + '</tr>';
+    const GOLD = '#C9A84C', BLUE = '#0EA5E9', AMBER = '#F59E0B';
+
+    /* lines = [{pts: [[date, dollars], ...], color, dash}]; each is spread over its own length */
+    const chart = (id, lines) => {
+      const W = 720, H = 260, pl = 8, pr = 58, pt = 12, pb = 22;
+      lines = lines.filter(l => l.pts && l.pts.length > 1);
+      if (!lines.length){ $(id).innerHTML = ''; return; }
+      const all = lines.flatMap(l => l.pts.map(p => p[1]));
+      let y0 = Math.min(...all), y1 = Math.max(...all);
+      const pad = (y1 - y0) * 0.1 || 100; y0 -= pad; y1 += pad;
+      const Y = v => pt + (y1 - v) / (y1 - y0) * (H - pt - pb);
+      const step = [250, 500, 1000, 2000, 5000].find(s => (y1 - y0) / s <= 6) || 5000;
+      let g = '';
+      for (let v = Math.ceil(y0 / step) * step; v <= y1; v += step)
+        g += '<line x1="' + pl + '" y1="' + Y(v).toFixed(1) + '" x2="' + (W - pr) + '" y2="' + Y(v).toFixed(1)
+          + '" stroke="rgba(201,168,76,' + (v === 10000 ? '.35' : '.12') + ')" stroke-width="1"' + (v === 10000 ? '' : ' stroke-dasharray="2 5"') + '/>'
+          + '<text x="' + (W - pr + 6) + '" y="' + (Y(v) + 3).toFixed(1) + '" font-size="10" fill="#A8A29E" font-family="JetBrains Mono,monospace">' + usd(v) + '</text>';
+      for (const l of lines){
+        const n = l.pts.length - 1;
+        g += '<path d="' + l.pts.map((p, i) => (i ? 'L' : 'M') + (pl + i / n * (W - pl - pr)).toFixed(1) + ' ' + Y(p[1]).toFixed(1)).join(' ')
+          + '" fill="none" stroke="' + l.color + '" stroke-width="' + (l.dash ? 1.4 : 2) + '"' + (l.dash ? ' stroke-dasharray="5 4"' : '') + '/>';
+      }
+      const first = lines[0].pts;
+      g += '<text x="' + pl + '" y="' + (H - 6) + '" font-size="10" fill="#A8A29E" font-family="JetBrains Mono,monospace">' + esc(first[0][0]) + '</text>'
+        + '<text x="' + (W - pr) + '" y="' + (H - 6) + '" font-size="10" fill="#A8A29E" font-family="JetBrains Mono,monospace" text-anchor="end">' + esc(first[first.length - 1][0]) + '</text>';
+      $(id).innerHTML = g;
+    };
+    const legend = (id, items) => { $(id).innerHTML = items.filter(Boolean).map(([color, text]) =>
+      '<span><i style="background:' + color + '"></i>' + text + '</span>').join(''); };
+    const heldRows = (rows, label) => rows.filter(p => byT[p.t]).map(p => '<tr>'
+      + '<td>' + label(p.slot) + (p.covered === false ? ' *' : '') + '</td>' + fund(byT[p.t])
+      + '<td><span class="dim">' + kind(byT[p.t]) + '</span></td>'
+      + '<td>' + usd(p.px, 2) + '</td><td>' + p.sh.toFixed(2) + '</td>'
+      + '<td>' + usd(p.paid) + '</td><td>' + usd(p.worth) + '</td><td>' + signed(p.ret) + '</td></tr>').join('');
+    const HELD = ['Pays', 'Fund', 'Built on', 'Bought at', 'Shares', 'Paid out', 'Worth now', 'Return'];
+
+    const drawView = v => {
+      const spyEnd = v.spy ? v.spy[v.spy.length - 1][1] : null;
+      for (const [key, label, per] of [['weekly', s => esc(s), 'A WEEK'], ['monthly', s => WEEK[s] + ' week', 'A MONTH']]){
+        const st = v.sets[key], id = 'model-' + key;
+        if (v.key === 'now'){
+          const rows = st.picks.filter(p => byT[p.t]);
+          $(id + '-head').innerHTML = th(['Pays', 'Fund', 'Built on', 'Total, 12 mo', 'Worst drop', 'Price', 'Shares', 'Its last payment']);
+          $(id).innerHTML = rows.map(p => { const f = byT[p.t]; return '<tr>'
+            + '<td>' + label(p.slot) + (p.covered ? '' : ' *') + '</td>' + fund(f)
+            + '<td><span class="dim">' + kind(f) + '</span></td>'
+            + '<td>' + signed(f.tot) + '</td><td><span class="dim">' + fmt(f.dd, 1) + '</span></td>'
+            + '<td>' + usd(p.px, 2) + '</td><td>' + p.sh.toFixed(2) + '</td>'
+            + '<td>' + (p.cash === null ? '—' : usd(p.cash, 2) + ' <span class="dim">(' + usd(p.lp, 4) + '/sh)</span>') + '</td></tr>'; }).join('');
+          $(id + '-hind').innerHTML = '';
+          const back = st.back;
+          chart(id + '-chart', [{ pts: back && back.series, color: GOLD }, { pts: v.spy, color: BLUE }]);
+          legend(id + '-legend', [back && [GOLD, 'THESE FUNDS OVER THE YEAR THEY WERE RANKED ON ' + usd(back.end)],
+            spyEnd && [BLUE, 'S&P 500 ' + usd(spyEnd)]]);
+          $(id + '-now').textContent = usd(10000) + ' TODAY: ' + usd(10000 / rows.length) + ' IN EACH OF THESE ' + rows.length
+            + ' AT THE ' + v.asof + ' CLOSE. IF EACH FUND REPEATED ITS LAST PAYMENT, THAT IS '
+            + usd(rows.reduce((a, p) => a + (p.cash || 0), 0), 2) + ' ' + per + '.';
+          $(id + '-sum').textContent = 'DRAWN UP ' + v.made + '. IT HAS NO RECORD YET. THE CHART LOOKS BACK OVER THE YEAR THE FUNDS WERE '
+            + 'RANKED ON, WHICH IS HINDSIGHT: IT SHOWS WHY THEY WERE PICKED, NOT WHAT THEY WILL DO.';
+        } else {
+          $(id + '-head').innerHTML = th(HELD);
+          $(id).innerHTML = heldRows(st.picks, label);
+          $(id + '-hind').innerHTML = st.hind ? '<div class="srcline" style="margin-top:22px">PICKED WITH HINDSIGHT, FOR COMPARISON</div>'
+            + '<div class="screenwrap"><table class="yt mt"><thead>' + th(HELD) + '</thead><tbody>' + heldRows(st.hind.picks, label)
+            + '</tbody></table></div>' : '';
+          chart(id + '-chart', [{ pts: st.series, color: GOLD }, { pts: st.hind && st.hind.series, color: AMBER, dash: true },
+            { pts: v.spy, color: BLUE }]);
+          legend(id + '-legend', [[GOLD, 'PICKED ON THE DAY ' + usd(st.end)], st.hind && [AMBER, 'WITH HINDSIGHT ' + usd(st.hind.end)],
+            spyEnd && [BLUE, 'S&P 500 ' + usd(spyEnd)]]);
+          $(id + '-now').textContent = usd(10000) + ' AT THE ' + v.asof + ' CLOSE HAS PAID OUT ' + usd(st.paid) + ' AND THE SHARES ARE WORTH '
+            + usd(st.worth) + ': ' + usd(st.end) + ' IN ALL. THE S&P 500 OVER THE SAME DAYS: ' + usd(spyEnd) + '.';
+          $(id + '-sum').textContent = (v.live ? 'RECORDED WHEN IT WAS MADE.' : 'REBUILT LATER FROM THE DATA THAT EXISTED ON ' + v.asof + '.')
+            + ' FOLLOWED TO ' + v.end + '.' + (st.hind ? ' HINDSIGHT WOULD HAVE MADE ' + usd(st.hind.end) + '.' : '');
+        }
+      }
+    };
+    const VIEWS = O.views || [];
+    $('starts').innerHTML = VIEWS.map((v, i) => '<button type="button" data-i="' + i + '"' + (i ? '' : ' class="on"') + '>'
+      + esc(v.label) + '</button>').join('');
+    $('starts').addEventListener('click', e => {
+      const i = e.target.dataset && e.target.dataset.i;
+      if (i === undefined) return;
+      [...$('starts').children].forEach(b => b.classList.toggle('on', b === e.target));
+      drawView(VIEWS[+i]);
+    });
+    if (VIEWS.length) drawView(VIEWS[0]);
+    $('feed-url').textContent = new URL('portfolio.json', location.href).href;
   }
 
   if (D.audit){
@@ -700,58 +937,6 @@ if (D){
         ? flagged.length + ' of our ' + D.audit.length + ' income holdings score worse than Healthy on this screen.'
         : 'All ' + D.audit.length + ' score Healthy — which is the floor for entry, not an achievement.')
       + ' Nothing in our book pays 0% true yield. That is the whole standard.';
-  }
-
-  /* main chart */
-  {
-    const W=720, H=300, pad=34;
-    const all = h.cum.concat(h.spy);
-    let y0 = Math.min(...all), y1 = Math.max(...all);
-    const m = (y1-y0)*0.12 || 1; y0-=m; y1+=m;
-    const x0 = Math.min(day(h.dates[0]), day(h.spy_dates[0]));
-    const x1 = Math.max(day(h.dates[h.dates.length-1]), day(h.spy_dates[h.spy_dates.length-1]));
-    const pt = linePath(truss, x0, x1, y0, y1, W, H, pad);
-    const ps = linePath(spy,   x0, x1, y0, y1, W, H, pad);
-    let g = '';
-    /* horizontal gridlines at whole-% steps */
-    for (let v=Math.ceil(y0); v<=Math.floor(y1); v++){
-      const y = pt.Y(v).toFixed(1);
-      g += '<line x1="'+pad+'" y1="'+y+'" x2="'+(W-pad)+'" y2="'+y+'" stroke="rgba(201,168,76,'+(v===0?'.35':'.12')+'" stroke-width="1"'+(v===0?'':' stroke-dasharray="2 5"')+'/>' +
-           '<text x="'+(W-pad+6)+'" y="'+(+y+3)+'" font-size="10" fill="#A8A29E" font-family="JetBrains Mono,monospace">'+(v>0?'+':'')+v+'%</text>';
-    }
-    /* worst point on the truss curve, marked in red on purpose */
-    let mi = 0; h.cum.forEach((v,i)=>{ if(v < h.cum[mi]) mi = i; });
-    const mx = pt.X(h.dates[mi]).toFixed(1), my = pt.Y(h.cum[mi]).toFixed(1);
-    g += '<path d="'+ps.d+'" fill="none" stroke="#0EA5E9" stroke-width="1.6" opacity=".85"/>';
-    g += '<path d="'+pt.d+'" fill="none" stroke="#C9A84C" stroke-width="2.2"/>';
-    g += '<circle cx="'+mx+'" cy="'+my+'" r="3.5" fill="none" stroke="#EF4444" stroke-width="1.5"/>' +
-         '<text x="'+mx+'" y="'+(+my+16)+'" font-size="10" fill="#EF4444" font-family="JetBrains Mono,monospace" text-anchor="middle">worst dd '+fmt(h.worst_dd)+'</text>';
-    const ex = pt.X(h.dates[h.dates.length-1]).toFixed(1), ey = pt.Y(lastCum).toFixed(1);
-    g += '<circle cx="'+ex+'" cy="'+ey+'" r="3" fill="#FFD700"/>';
-    $('chart').innerHTML = g;
-    $('chart-range').textContent = h.dates[0]+' → '+h.dates[h.dates.length-1];
-  }
-
-  /* stat row */
-  const sl = h.sleeves;
-  $('stat-sleeves').innerHTML = sl.ladder+' <small>LADDER</small> · '+sl.monthly+' <small>MONTHLY</small> · '+
-    sl.overlay+' <small>SHORT</small> · '+sl.accumulator+' <small>ACC</small>';
-  $('stat-dd').textContent = fmt(h.worst_dd);
-
-  /* income: what has actually landed, next to what is modeled */
-  {
-    const inc = D.income;
-    $('stat-received').innerHTML = '$'+inc.received.toFixed(2)+
-      ' <small>SINCE '+inc.since+'</small>';
-    $('stat-next').innerHTML = inc.next_ticker
-      ? esc(inc.next_ticker)+' <small>'+esc(inc.next_date)+' · $'+inc.next_amount.toFixed(2)+'</small>'
-      : '—';
-    $('income-note').innerHTML = 'The book models <b style="color:var(--gold2)">$'+
-      inc.modeled_yr.toLocaleString()+' a year</b> from its current holdings — that is a projection '+
-      'from '+ inc.modeled_from.toLocaleString() +' historical payments at target share counts, not money we have been paid. '+
-      'Received since the July 27 rebuild: <b style="color:var(--gold2)">$'+inc.received.toFixed(2)+
-      '</b>. We publish both numbers because the first one is the one every other income product '+
-      'shows you on its own.';
   }
 
   /* letter section */

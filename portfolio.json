@@ -1,39 +1,39 @@
 {
  "about": "Example payout schedules from the screen. Not advice, not personal to anyone, and not an instruction to trade. Built by a fixed rule from the last twelve months.",
- "made": "2026-11-02",
- "prices_as_of": "2026-10-30",
- "next_update": "2026-11-09",
+ "made": "2026-11-09",
+ "prices_as_of": "2026-11-06",
+ "next_update": "2026-11-16",
  "rule": "per pay slot, among funds whose price held or rose while paying: 50% total-return rank, 30% steadiness rank, 20% breadth",
  "weekly": [
   {
    "pays": "Mon",
    "ticker": "GIAX",
    "weight": 0.2,
-   "entry_close": 14.32
+   "entry_close": 13.44
   },
   {
    "pays": "Tue",
    "ticker": "AMDW",
    "weight": 0.2,
-   "entry_close": 77.22
+   "entry_close": 66.18
   },
   {
    "pays": "Wed",
    "ticker": "WEEK",
    "weight": 0.2,
-   "entry_close": 100.03
+   "entry_close": 100.04
   },
   {
    "pays": "Thu",
    "ticker": "CHPY",
    "weight": 0.2,
-   "entry_close": 56.71
+   "entry_close": 49.07
   },
   {
    "pays": "Fri",
    "ticker": "USOY",
    "weight": 0.2,
-   "entry_close": 7.89
+   "entry_close": 6.91
   }
  ],
  "monthly": [
@@ -41,25 +41,25 @@
    "pays": 1,
    "ticker": "BALI",
    "weight": 0.25,
-   "entry_close": 34.08
+   "entry_close": 32.86
   },
   {
    "pays": 2,
    "ticker": "DIV",
    "weight": 0.25,
-   "entry_close": 19.43
+   "entry_close": 18.9
   },
   {
    "pays": 3,
    "ticker": "AAPY",
    "weight": 0.25,
-   "entry_close": 28.38
+   "entry_close": 28.25
   },
   {
    "pays": 4,
-   "ticker": "QYLD",
+   "ticker": "PEY",
    "weight": 0.25,
-   "entry_close": 17.89
+   "entry_close": 24.68
   }
  ]
 }
